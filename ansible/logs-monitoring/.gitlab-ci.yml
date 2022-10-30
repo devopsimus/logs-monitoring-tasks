@@ -1,0 +1,54 @@
+variables:
+  ANSIBLE_EXTRA_VARS: "ansible_become_pass=${ANSIBLE_BECOME_PASS}"
+  ANSIBLE_SSH_COMMON_ARGS: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+  VAULT_PASSWORD_FILE: "ansible_vault.txt"
+
+stages:
+  - check
+  - deploy
+
+ansible_roles_check:
+  stage: check
+  image: $CI_REGISTRY/docker-images/ansible-molecule:3.2.0
+  tags:
+    - docker
+  script:
+    - echo "$SSH_PRIVATE_KEY" > $HOME/.ssh/id_rsa
+    - chmod 600 $HOME/.ssh/id_rsa
+    - export ANSIBLE_CONFIG=$(pwd)/ansible.cfg
+    - echo "${VAULT_PASSWORD}" > $HOME/"${VAULT_PASSWORD_FILE}"
+    - ssh-keyscan ${GITLAB_ID} > $HOME/.ssh/known_hosts 2> /dev/null
+    - ansible-galaxy install -r requirements.yml
+    - ansible-playbook -i inventory/deploy.ini  playbooks/setup/elasticsearch.yml -b --extra-vars "${ANSIBLE_EXTRA_VARS}" --ssh-common-arg "${ANSIBLE_SSH_COMMON_ARGS}" --vault-password-file $HOME/"${VAULT_PASSWORD_FILE}" --check
+    - ansible-playbook -i inventory/deploy.ini  playbooks/setup/grafana.yml -b --extra-vars "${ANSIBLE_EXTRA_VARS}" --ssh-common-arg "${ANSIBLE_SSH_COMMON_ARGS}" --vault-password-file $HOME/"${VAULT_PASSWORD_FILE}" --check
+
+ansible_elasticsearch_deploy:
+  stage: deploy
+  image: $CI_REGISTRY/docker-images/ansible-molecule:3.2.0
+  when: manual
+  tags:
+    - docker
+  script:
+    - echo "$SSH_PRIVATE_KEY" > $HOME/.ssh/id_rsa
+    - chmod 600 $HOME/.ssh/id_rsa
+    - export ANSIBLE_CONFIG=$(pwd)/ansible.cfg
+    - echo "${VAULT_PASSWORD}" > $HOME/"${VAULT_PASSWORD_FILE}"
+    - ssh-keyscan ${GITLAB_ID} > $HOME/.ssh/known_hosts 2> /dev/null
+    - ansible-galaxy install -r requirements.yml
+    - ansible-playbook -i inventory/deploy.ini  playbooks/setup/elasticsearch.yml -b --extra-vars "${ANSIBLE_EXTRA_VARS}" --ssh-common-arg "${ANSIBLE_SSH_COMMON_ARGS}" --vault-password-file $HOME/"${VAULT_PASSWORD_FILE}"
+
+ansible_grafana_deploy:
+  stage: deploy
+  image: $CI_REGISTRY/docker-images/ansible-molecule:3.2.0
+  when: manual
+  tags:
+    - docker
+  script:
+    - echo "$SSH_PRIVATE_KEY" > $HOME/.ssh/id_rsa
+    - chmod 600 $HOME/.ssh/id_rsa
+    - export ANSIBLE_CONFIG=$(pwd)/ansible.cfg
+    - echo "${VAULT_PASSWORD}" > $HOME/"${VAULT_PASSWORD_FILE}"
+    - ssh-keyscan ${GITLAB_ID} > $HOME/.ssh/known_hosts 2> /dev/null
+    - ansible-galaxy install -r requirements.yml
+    - ansible-playbook -i inventory/deploy.ini  playbooks/setup/grafana.yml -b --extra-vars "${ANSIBLE_EXTRA_VARS}" --ssh-common-arg "${ANSIBLE_SSH_COMMON_ARGS}" --vault-password-file $HOME/"${VAULT_PASSWORD_FILE}" --check
+

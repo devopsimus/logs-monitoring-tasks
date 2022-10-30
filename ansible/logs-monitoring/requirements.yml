@@ -1,0 +1,11 @@
+---
+- name: grafana
+  src: https://github.com/atosatto/ansible-grafana.git
+  scm: git
+
+- name: elasticsearch
+  src: https://github.com/elastic/ansible-elasticsearch.git
+  scm: git
+  version: "7.7.0"
+
+

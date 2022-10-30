@@ -1,0 +1,6 @@
+---
+elasticsearch_xmx: 1024m
+elasticsearch_xms: 1024m
+elasticsearch_plugins:
+  - analysis-icu
+  - analysis-phonetic
